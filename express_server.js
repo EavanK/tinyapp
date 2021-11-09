@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const PORT = 8080;
 
 //bodyParser converts the request body from a buffer
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -12,8 +12,9 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-// function generateRandomString() {
-// }
+function generateRandomString() {
+  return Math.random().toString(36).slice(2, 8);
+}
 
 
 app.get('/', (req, res) => {
@@ -30,8 +31,13 @@ app.get('/urls', (req, res) => {
 });
 
 app.post('/urls', (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send('ok'); // Respond with 'Ok' (we will replace this)
+  // console.log(req.body); // Log the POST request body to the console
+  const templateVars = {
+    shortURL: generateRandomString(),
+    longURL: req.body.longURL
+  };
+  urlDatabase[templateVars.shortURL] = templateVars.longURL;
+  res.send(templateVars.shortURL);
 });
 
 app.get('/urls/new', (req, res) => {
@@ -39,13 +45,17 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL]
   };
   res.render('urls_show', templateVars);
 });
 
+app.get('u/:shortURL', (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.render('urls_show', longURL);
+});
 
 
 app.get('/hello', (req, res) => {
