@@ -28,6 +28,7 @@ const users = {
   }
 };
 
+// function creating Random ID
 const generateRandomString = () => {
   return Math.random().toString(36).slice(2, 8);
 };
@@ -63,27 +64,49 @@ app.get('/register', (req, res) => {
     users : users,
     user_id: req.cookies.user_id
   };
-  console.log(templateVars.users);
   res.render('urls_register', templateVars);
 });
 
+//function checking if email exists on userDB
+const userEmailCheck = (userDB, email) => {
+  for (const id in userDB) {
+    if (userDB[id].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
+
 //add userId to database and cookie
 app.post('/register', (req, res) => {
-  // create new user id
+  const email = req.body.email;
+  const password = req.body.password;
   const userId = generateRandomString();
+
+  // if empty email or password are given, send error
+  if (!email || !password) {
+    // return res.status(400).send("I guess you forgot something ;)");
+    return res.sendStatus(400);
+  }
+  if (userEmailCheck(users, email)) {
+    //return res.status(400).send("Your email already exists :)");
+    return res.sendStatus(400);
+  }
+
+  // create new user id
   // add new user id and info to user database
   users[userId] = {
     id: userId,
-    email: req.body.email,
-    password: req.body.password
+    email: email,
+    password: password
   };
-  console.log(users);
+
   // set user id cookie
   res.cookie('user_id', users[userId].id);
   res.redirect('/urls');
 });
-
-
+  
+  
 // add new short and long urls
 app.post('/urls', (req, res) => {
   const templateVars = {
