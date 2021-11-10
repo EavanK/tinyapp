@@ -8,10 +8,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.set("view engine", "ejs");
 
+//url database
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
 
 const generateRandomString = () => {
   return Math.random().toString(36).slice(2, 8);
@@ -37,6 +39,13 @@ app.get('/urls/new', (req, res) => {
   const templateVars = {
     username: req.cookies.username };
   res.render('urls_new', templateVars);
+});
+
+//register
+app.get('/register', (req, res) => {
+  const templateVars = {
+    username: req.cookies.username };
+  res.render('urls_register', templateVars);
 });
 
 
@@ -91,6 +100,15 @@ app.post('/logout', (req, res) => {
   res.clearCookie('username');
   res.redirect('/urls');
 });
+
+// type=email
+// name=email
+// type=password
+// name=password
+// method=post
+// action=/register
+
+
 
 
 app.get('/u/:shortURL', (req, res) => {
