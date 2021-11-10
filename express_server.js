@@ -15,15 +15,15 @@ const urlDatabase = {
 };
 
 //user database
-const users = { 
+const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
 };
@@ -31,7 +31,6 @@ const users = {
 const generateRandomString = () => {
   return Math.random().toString(36).slice(2, 8);
 };
-
 
 app.get('/', (req, res) => {
   res.send('Hello');
@@ -41,55 +40,62 @@ app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
 
+// urls homepage
 app.get('/urls', (req, res) => {
   const templateVars = {
-    username: req.cookies.username,
+    users: users,
+    user_id: req.cookies.user_id,
     urls: urlDatabase };
   res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
   const templateVars = {
-    username: req.cookies.username };
+    users: users,
+    user_id: req.cookies.user_id,
+  };
   res.render('urls_new', templateVars);
 });
 
 //register
 app.get('/register', (req, res) => {
   const templateVars = {
-    username: req.cookies.username };
+    users : users,
+    user_id: req.cookies.user_id
+  };
+  console.log(templateVars.users);
   res.render('urls_register', templateVars);
 });
 
-//add user ID to database and cookie
+//add userId to database and cookie
 app.post('/register', (req, res) => {
   // create new user id
   const userId = generateRandomString();
   // add new user id and info to user database
   users[userId] = {
     id: userId,
-    eamil: req.body.email,
-    password: req.body.password 
+    email: req.body.email,
+    password: req.body.password
   };
-    // set user id cookie
+  console.log(users);
+  // set user id cookie
   res.cookie('user_id', users[userId].id);
   res.redirect('/urls');
 });
 
 
-// add
+// add new short and long urls
 app.post('/urls', (req, res) => {
   const templateVars = {
     shortURL: generateRandomString(),
     longURL: req.body.longURL
   };
   urlDatabase[templateVars.shortURL] = templateVars.longURL;
-
   res.redirect(`/urls/${templateVars.shortURL}`);
 });
 
 
-//delete
+//delete url
 app.post(`/urls/:shortURL/delete`, (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
@@ -97,10 +103,10 @@ app.post(`/urls/:shortURL/delete`, (req, res) => {
 });
 
 
-//edit
+//edit long url
 app.post(`/urls/:id`, (req, res) => {
   const shortURL = req.params.id;
-  const longURL = req.body.longURL;// req.body.color is new color
+  const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
   res.redirect('/urls');
 });
@@ -110,13 +116,14 @@ app.get('/urls/:shortURL', (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies.username
+    users: users,
+    user_id: req.cookies.user_id
   };
   res.render('urls_show', templateVars);
 });
 
 
-//login
+//login no longer need
 app.post('/login', (req, res) => {
   res.cookie('username', req.body.username);
   res.redirect('/urls');
@@ -124,20 +131,9 @@ app.post('/login', (req, res) => {
 
 //logout
 app.post('/logout', (req, res) => {
-  // res.cookie('username', '');
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
-
-// type=email
-// name=email
-// type=password
-// name=password
-// method=post
-// action=/register
-
-
-
 
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
