@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const { getUserByEmail } = require('./helpers');
+const { getUserByEmail, urlsForUser, generateRandomString } = require('./helpers');
 const PORT = 8080;
 
 //bodyParser converts the request body from a buffer
@@ -37,26 +37,6 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk"
   }
-};
-
-// function creating Random ID
-const generateRandomString = () => {
-  return Math.random().toString(36).slice(2, 8);
-};
-
-
-//function for longURL
-const urlsForUser = (urlDB, cookie) => {
-  const urlForUser = {};
-  for (const short in urlDB) {
-    if (urlDB[short].userID === cookie) {
-      urlForUser[short] = {
-        longURL: urlDB[short].longURL,
-        userID: cookie
-      };
-    }
-  }
-  return urlForUser;
 };
 
 
