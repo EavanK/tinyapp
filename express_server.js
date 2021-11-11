@@ -77,6 +77,24 @@ const userEmailCheck = (userDB, email) => {
   return false;
 };
 
+//function checking password
+const userPasswordCheck = (userDB, password) => {
+  for (const id in userDB) {
+    if (userDB[id].password === password) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const matchingUserId = (userDB, email) => {
+  for (const id in userDB) {
+    if(userDB[id].email === email) {
+      return id;
+    }
+  }
+};
+
 //add userId to database and cookie
 app.post('/register', (req, res) => {
   const email = req.body.email;
@@ -154,9 +172,15 @@ app.get('/login', (req, res) => {
   res.render('urls_login', templateVars);
 });
 
+//login
 app.post('/login', (req, res) => {
-
-  
+  const email = req.body.email;
+  const password = req.body.password;
+  const userId = matchingUserId(users, email);  
+  if (!userEmailCheck(users, email) || !userPasswordCheck(users, password)) {
+    return res.sendStatus(403);
+  }    
+  res.cookie('user_id', userId);
   res.redirect('/urls');
 });
 

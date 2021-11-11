@@ -13,12 +13,12 @@
     </div>
     <!-- login -->
     <%if (!users[user_id]) { %>
-      <!-- <form class="form-inline" method="GET" action='/login'>
-        <button type="submit" class="btn btn-outline-dark pl-3">Sign in</button>
-      </form> -->
-      <form class="form-inline" method="GET" action='/register'>
-        <button type="submit" class="btn btn-outline-dark pl-3">Register</button>
-      </form>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+          <a class="nav-item nav-link" href="/login">Login</a>
+          <a class="nav-item nav-link" href="/register">Register</a>
+        </div>
+      </div>
       <%} else {%>
         <form class="form-inline" method="POST" action='/logout'>
           <h5>
@@ -28,4 +28,5 @@
         </form>
         <%}%>
   </nav>
+  </form>
 </header>
