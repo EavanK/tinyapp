@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
+const getUserByEmail = require('./helpers');
 const PORT = 8080;
 
 //bodyParser converts the request body from a buffer
@@ -41,16 +42,6 @@ const users = {
 // function creating Random ID
 const generateRandomString = () => {
   return Math.random().toString(36).slice(2, 8);
-};
-
-//function matching if email exists on userDB
-const userEmailCheck = (userDB, email) => {
-  for (const id in userDB) {
-    if (userDB[id].email === email) {
-      return id;
-    }
-  }
-  return false;
 };
 
 
@@ -198,7 +189,7 @@ app.post('/register', (req, res) => {
   if (!email || !password) {
     return res.status(400).send("Email and Password shouldn't be empty");
   }
-  if (userEmailCheck(users, email)) {
+  if (getUserByEmail(users, email)) {
     return res.status(400).send("Your email already exists");
   }
   users[userId] = {
@@ -225,7 +216,7 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const passwordUserTyped = req.body.password;
-  const userId = userEmailCheck(users, email);
+  const userId = getUserByEmail(users, email);
 
   if (!userId) {
     return res.status(403).send('Please check your ID');
