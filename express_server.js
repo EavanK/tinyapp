@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const getUserByEmail = require('./helpers');
+const { getUserByEmail } = require('./helpers');
 const PORT = 8080;
 
 //bodyParser converts the request body from a buffer
