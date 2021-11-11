@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
 const PORT = 8080;
 
 //bodyParser converts the request body from a buffer
@@ -43,29 +44,12 @@ const generateRandomString = () => {
 const userEmailCheck = (userDB, email) => {
   for (const id in userDB) {
     if (userDB[id].email === email) {
-      return true;
+      return id;
     }
   }
   return false;
 };
 
-//function matching password
-const userPasswordCheck = (userDB, password) => {
-  for (const id in userDB) {
-    if (userDB[id].password === password) {
-      return true;
-    }
-  }
-  return false;
-};
-//function matching userID
-const matchingUserId = (userDB, email) => {
-  for (const id in userDB) {
-    if (userDB[id].email === email) {
-      return id;
-    }
-  }
-};
 
 //function for longURL
 const urlsForUser = (urlDB, cookie) => {
@@ -102,7 +86,7 @@ app.post('/urls', (req, res) => {
   const longURL = req.body.longURL;
   const userId = req.cookies.user_id;
   if (!userId) {
-    return res.sendStatus(401);
+    return res.status(401).send(`You are unauthorized`);
   }
   if (longURL.includes('https://') || longURL.includes('http://')) {
     urlDatabase[shortURL] = { longURL: longURL, userID: userId };
@@ -121,7 +105,7 @@ app.get('/urls/new', (req, res) => {
     user_id: user_id,
   };
   if (!user_id) {
-    return res.sendStatus(401);
+    return res.status(401).send(`You are unauthorized`);
   }
   res.render('urls_new', templateVars);
 });
@@ -131,12 +115,12 @@ app.get('/urls/new', (req, res) => {
 app.post(`/urls/:shortURL/delete`, (req, res) => {
   const shortURL = req.params.shortURL;
   if (!urlDatabase[shortURL]) {
-    return res.sendStatus(404);
+    return res.status(404).send(`We can't find the shortURL`);
   }
 
   const userId = req.cookies.user_id;
   if (!userId || urlDatabase[shortURL].userID !== userId) {
-    return res.sendStatus(401);
+    return res.status(401).send(`You are unauthorized`);
   }
   delete urlDatabase[shortURL];
   res.redirect('/urls');
@@ -155,7 +139,7 @@ app.post(`/urls/:id`, (req, res) => {
     urlDatabase[shortURL] = { longURL: `https://${longURL}`, userID: userId };
   }
   if (!userId || urlDatabase[shortURL].userID !== userId) {
-    return res.sendStatus(401);
+    return res.status(401).send(`You are unauthorized`);
   }
   res.redirect('/urls');
 });
@@ -164,18 +148,18 @@ app.post(`/urls/:id`, (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   if (!urlDatabase[shortURL]) {
-    return res.sendStatus(404);
+    return res.status(404).send(`We can't find the shortURL`);
   }
   const longURL = urlDatabase[shortURL].longURL;
   const userId = req.cookies.user_id;
   const templateVars = {
-    shortURL: shortURL,
-    longURL: longURL,
-    users: users,
+    shortURL,
+    longURL,
+    users,
     user_id: userId
   };
   if (!userId) {
-    return res.sendStatus(401);
+    return res.status(401).send(`You are unauthorized`);
   }
   res.render('urls_show', templateVars);
 });
@@ -184,7 +168,7 @@ app.get('/urls/:shortURL', (req, res) => {
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   if (!urlDatabase[shortURL]) {
-    return res.sendStatus(404);
+    return res.status(404).send(`We can't find the shortURL`);
   }
   const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
@@ -205,19 +189,21 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const userId = generateRandomString();
 
   if (!email || !password) {
-    return res.sendStatus(400);
+    return res.status(400).send("Email and Password shouldn't be empty");
   }
   if (userEmailCheck(users, email)) {
-    return res.sendStatus(400);
+    return res.status(400).send("Your email already exists");
   }
   users[userId] = {
     id: userId,
-    email: email,
-    password: password
+    email,
+    password: hashedPassword
   };
+
   res.cookie('user_id', users[userId].id);
   res.redirect('/urls');
 });
@@ -226,7 +212,7 @@ app.post('/register', (req, res) => {
 //GET login
 app.get('/login', (req, res) => {
   const templateVars = {
-    users: users,
+    users,
     user_id: req.cookies.user_id
   };
   res.render('urls_login', templateVars);
@@ -235,11 +221,18 @@ app.get('/login', (req, res) => {
 //POST login
 app.post('/login', (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
-  const userId = matchingUserId(users, email);
-  if (!userEmailCheck(users, email) || !userPasswordCheck(users, password)) {
-    return res.sendStatus(403);
+  const passwordUserTyped = req.body.password;
+  const userId = userEmailCheck(users, email);
+
+  if (!userId) {
+    return res.status(403).send('Please check your ID');
   }
+
+  const hashedPassword = users[userId].password;
+  if (!bcrypt.compareSync(passwordUserTyped, hashedPassword)) {
+    return res.status(403).send('Please check Password');
+  }
+
   res.cookie('user_id', userId);
   res.redirect('/urls');
 });
