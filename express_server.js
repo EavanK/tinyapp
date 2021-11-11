@@ -145,10 +145,18 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
+//login
+app.get('/login', (req, res) => {
+  const templateVars = {
+    users : users,
+    user_id: req.cookies.user_id
+  };
+  res.render('urls_login', templateVars);
+});
 
-//login no longer need
 app.post('/login', (req, res) => {
-  res.cookie('username', req.body.username);
+
+  
   res.redirect('/urls');
 });
 
