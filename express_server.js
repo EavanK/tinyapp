@@ -8,10 +8,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.set("view engine", "ejs");
 
-//url database
+//ulrDB
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+      longURL: "https://www.tsn.ca",
+      userID: "aJ48lW"
+  },
+  i3BoGr: {
+      longURL: "https://www.google.ca",
+      userID: "aJ48lW"
+  }
 };
 
 //user database
@@ -55,6 +61,10 @@ app.get('/urls/new', (req, res) => {
     users: users,
     user_id: req.cookies.user_id,
   };
+
+  if (!req.cookies.user_id) {
+    return res.redirect('/login');
+  }
   res.render('urls_new', templateVars);
 });
 
@@ -86,7 +96,7 @@ const userPasswordCheck = (userDB, password) => {
   }
   return false;
 };
-
+//function checking userID
 const matchingUserId = (userDB, email) => {
   for (const id in userDB) {
     if(userDB[id].email === email) {
@@ -110,7 +120,6 @@ app.post('/register', (req, res) => {
     //return res.status(400).send("Your email already exists :)");
     return res.sendStatus(400);
   }
-
   // create new user id
   // add new user id and info to user database
   users[userId] = {
@@ -118,7 +127,6 @@ app.post('/register', (req, res) => {
     email: email,
     password: password
   };
-
   // set user id cookie
   res.cookie('user_id', users[userId].id);
   res.redirect('/urls');
@@ -127,12 +135,15 @@ app.post('/register', (req, res) => {
   
 // add new short and long urls
 app.post('/urls', (req, res) => {
-  const templateVars = {
-    shortURL: generateRandomString(),
-    longURL: req.body.longURL
-  };
-  urlDatabase[templateVars.shortURL] = templateVars.longURL;
-  res.redirect(`/urls/${templateVars.shortURL}`);
+  const shortURL = generateRandomString();
+  const longURL = req.body.longURL;
+  const userId = req.cookies.user_id;
+  if (longURL.includes('https://') || longURL.includes('http://')) {
+    urlDatabase[shortURL] = {longURL: longURL , userID: userId}
+  } else {
+    urlDatabase[shortURL] = {longURL: `https://${longURL}` , userID: userId}
+  }
+  res.redirect(`/urls/${shortURL}`);
 });
 
 
@@ -148,18 +159,30 @@ app.post(`/urls/:shortURL/delete`, (req, res) => {
 app.post(`/urls/:id`, (req, res) => {
   const shortURL = req.params.id;
   const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
+  const userId = req.cookies.user_id;
+  if (longURL.includes('https://') || longURL.includes('http://')) {
+    urlDatabase[shortURL] = {longURL: longURL , userID: userId}
+  } else {
+    urlDatabase[shortURL] = {longURL: `https://${longURL}` , userID: userId}
+  }
   res.redirect('/urls');
 });
 
 //short URL web page
 app.get('/urls/:shortURL', (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL].longURL;
+  const userId = req.cookies.user_id;
   const templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    shortURL: shortURL,
+    longURL: longURL,
     users: users,
-    user_id: req.cookies.user_id
+    user_id: userId
   };
+  // need to be logged in to edit
+  if(!userId) {
+    return res.redirect('/login');
+  }
   res.render('urls_show', templateVars);
 });
 
@@ -191,7 +214,9 @@ app.post('/logout', (req, res) => {
 });
 
 app.get('/u/:shortURL', (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL].longURL;
+ 
   res.redirect(longURL);
 });
 
