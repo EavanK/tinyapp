@@ -13,11 +13,9 @@
     </div>
     <!-- login -->
     <%if (!users[user_id]) { %>
-      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-        <div class="navbar-nav">
-          <a class="nav-item nav-link" href="/login">Login</a>
-          <a class="nav-item nav-link" href="/register">Register</a>
-        </div>
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" href="/login">Login</a>
+        <a class="nav-item nav-link" href="/register">Register</a>
       </div>
       <%} else {%>
         <form class="form-inline" method="POST" action='/logout'>

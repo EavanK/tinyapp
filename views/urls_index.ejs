@@ -16,6 +16,9 @@
       <h3>My URLs</h3>
       <table class="table">
         <thead>
+          <%if (!user_id) {%>
+            <td> PLEASE LOGIN FIRST</td>
+          <%} else {%>
           <tr>
             <th scope="col">Short URL</th>
 
@@ -27,14 +30,10 @@
           </tr>
         </thead>
         <tbody>
-          <% for(let url in urls) { %>
+          <%for(let url in urls) {%>
             <tr>
-              <td><a href="/u/<%= url %>">
-                  <%= url %>
-                </a></td>
-              <td>
-                <%= urls[url].longURL %>
-              </td>
+              <td><a href="/u/<%=url%>"><%= url %></a></td>
+              <td><%= urls[url].longURL %></td>
               <!-- edit -->
               <td>
                 <form method="GET" action="/urls/<%=url%>">
@@ -48,7 +47,8 @@
                 </form>
               </td>
             </tr>
-            <% } %>
+           <%}%>
+          <%}%>          
         </tbody>
       </table>
     </main>
