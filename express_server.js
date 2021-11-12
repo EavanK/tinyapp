@@ -3,6 +3,7 @@ const app = express();
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const { getUserByEmail, urlsForUser, generateRandomString } = require('./helpers');
+const methodOverride = require('method-override');
 const PORT = 8080;
 
 app.use(express.urlencoded({ extended: false }));
@@ -10,6 +11,7 @@ app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
 }));
+app.use(methodOverride('_method'));
 app.set("view engine", "ejs");
 
 //ulrDB
@@ -169,8 +171,8 @@ app.get('/urls/new', (req, res) => {
 
 
 // /urls/:id
-//POST edit long url
-app.post(`/urls/:id`, (req, res) => {
+//PUT edit long url
+app.put(`/urls/:id`, (req, res) => {
   const shortURL = req.params.id;
   const longURL = req.body.longURL;
   const userID = req.session.user_id;
@@ -221,8 +223,8 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
-//POST delete url
-app.post(`/urls/:shortURL/delete`, (req, res) => {
+//DELETE delete url
+app.delete(`/urls/:shortURL/delete`, (req, res) => {
   const shortURL = req.params.shortURL;
   const user_id = req.session.user_id;
   const user = users[user_id];
