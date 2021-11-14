@@ -78,9 +78,6 @@ app.get('/urls', (req, res) => {
   const user_id = req.session.user_id;
   const urls = urlsForUser(urlDatabase, user_id);
   const templateVars = { users, user_id, urls };
-  if (!user_id) {
-    return res.status(401).send(`You must <a href='/login'>login</a> first`);
-  }
   res.render('urls_index', templateVars);
 });
 
